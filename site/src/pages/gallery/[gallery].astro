@@ -1,0 +1,63 @@
+---
+import { IMAGE_BASE } from '../../config';
+import fs from 'node:fs';
+import path from 'node:path';
+
+export function getStaticPaths() {
+  const photosDir = path.join(process.cwd(), 'public/photos');
+  return fs.readdirSync(photosDir, { withFileTypes: true })
+    .filter(d => d.isDirectory())
+    .map(d => ({ params: { gallery: d.name } }));
+}
+
+const { gallery } = Astro.params;
+const photosDir = path.join(process.cwd(), 'public/photos', gallery!);
+const images = fs.readdirSync(photosDir).filter(f => /\.(jpe?g|png|webp)$/i.test(f) && !f.includes('_thumb')).sort();
+
+function getThumb(img: string): string {
+  const thumb = img.replace(/\.([^.]+)$/, '_thumb.$1');
+  return fs.existsSync(path.join(photosDir, thumb)) ? thumb : img;
+}
+---
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width" />
+  <title>{gallery}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #111; color: #fff; padding: 2rem; }
+    h1 { margin-bottom: 0.5rem; font-weight: 300; }
+    .back { color: #888; margin-bottom: 2rem; display: inline-block; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 0.5rem; }
+    .grid img { width: 100%; aspect-ratio: 1; object-fit: cover; cursor: pointer; border-radius: 12px; }
+    .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; place-items: center; z-index: 100; }
+    .lightbox.active { display: grid; }
+    .lightbox img { max-width: 95vw; max-height: 95vh; object-fit: contain; }
+    .lightbox-close { position: absolute; top: 1rem; right: 1rem; font-size: 2rem; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <a href="/" class="back">← Back</a>
+  <h1>{gallery}</h1>
+  <p style="color:#888;margin-bottom:2rem">{images.length} photos</p>
+  <div class="grid">
+    {images.map(img => (
+      <img src={`${IMAGE_BASE}/${gallery}/${getThumb(img)}`} data-full={`${IMAGE_BASE}/${gallery}/${img}`} alt={img} loading="lazy" onclick="openLightbox(this.dataset.full)" />
+    ))}
+  </div>
+  <div class="lightbox" onclick="this.classList.remove('active')">
+    <span class="lightbox-close">&times;</span>
+    <img id="lightbox-img" src="" alt="" />
+  </div>
+  <script is:inline>
+    function openLightbox(src) {
+      document.getElementById('lightbox-img').src = src;
+      document.querySelector('.lightbox').classList.add('active');
+    }
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') document.querySelector('.lightbox').classList.remove('active');
+    });
+  </script>
+</body>
+</html>

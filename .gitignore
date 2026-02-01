@@ -1,0 +1,7 @@
+photos/
+node_modules/
+.env
+*.log
+dist/
+cdk.out/
+site/public/photos

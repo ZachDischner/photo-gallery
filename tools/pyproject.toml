@@ -1,0 +1,8 @@
+[project]
+name = "zd-gallery-tools"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = ["httpx", "boto3", "awscrt"]
+
+[dependency-groups]
+dev = []
