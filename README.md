@@ -26,6 +26,10 @@ cd site && npm run dev
 1. Add folders to `photos/` (use slugified names like `2024-trip-name`)
 2. Run `cd tools && uv run deploy.py`
 
+## Code Changes
+
+Push review branches named `codex/<short-description>` to GitHub. After the pull request workflow is merged into `main`, GitHub opens a pull request as `github-actions[bot]`. See [the GitHub review workflow](docs/GITHUB_WORKFLOW.md).
+
 ## Structure
 
 - `infra/` - CDK infrastructure (S3 + CloudFront + Route53 + ACM)

@@ -49,6 +49,13 @@ cd tools && ./gen_thumbs.sh
 **Read When**: First deploy or troubleshooting  
 **Contains**: CDK deploy, DNS setup, S3 sync, CloudFront invalidation
 
+### GITHUB_WORKFLOW.md
+**Purpose**: GitHub pull request workflow
+
+**Read When**: Opening or reviewing code changes
+
+**Contains**: Codex branch naming, automatic PR creation, and review steps
+
 ### LOCAL_DEV.md
 **Purpose**: Local development setup  
 **Read When**: Setting up dev environment or testing changes  

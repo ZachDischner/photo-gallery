@@ -1,0 +1,66 @@
+name: Open pull request for Codex branches
+
+on:
+  push:
+    branches:
+      - "codex/**"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  open-pull-request:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Open pull request for pushed branch
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const branch = context.ref.replace(/^refs\/heads\//, "");
+            const base = "main";
+
+            const { data: openPullRequests } = await github.rest.pulls.list({
+              owner,
+              repo,
+              state: "open",
+              head: `${owner}:${branch}`,
+              base,
+            });
+
+            if (openPullRequests.length > 0) {
+              core.info(`Pull request #${openPullRequests[0].number} is already open.`);
+              return;
+            }
+
+            const { data: comparison } = await github.rest.repos.compareCommits({
+              owner,
+              repo,
+              base,
+              head: branch,
+            });
+            const subjects = comparison.commits
+              .map(({ commit }) => commit.message.split("\n", 1)[0])
+              .filter(Boolean);
+            const title = (subjects.at(-1) || `Review ${branch}`).slice(0, 120);
+            const summary = subjects.map((subject) => `- ${subject}`).join("\n");
+            const body = [
+              "## Summary",
+              summary || `Changes on \`${branch}\`.`,
+              "",
+              "## Review",
+              "Please review the changed files and leave feedback before merging.",
+              "",
+              `Opened automatically after \`${branch}\` was pushed.`,
+            ].join("\n");
+
+            const { data: pullRequest } = await github.rest.pulls.create({
+              owner,
+              repo,
+              head: branch,
+              base,
+              title,
+              body,
+            });
+            core.notice(`Opened PR #${pullRequest.number}: ${pullRequest.html_url}`);
